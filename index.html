@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Security Status</title>
+  <style>
+    body {
+      margin: 0;
+      background: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      user-select: none;
+    }
+    .status {
+      text-align: center;
+    }
+    .status-text {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+    .circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background-color: red;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="status">
+    <div class="status-text">Security Status</div>
+    <div class="circle" id="light"></div>
+  </div>
+
+  <script>
+    let green = false;
+    document.body.onkeydown = function(e) {
+      if (e.code === 'Space') {
+        green = !green;
+        document.getElementById('light').style.backgroundColor = green ? 'green' : 'red';
+      }
+    };
+  </script>
+</body>
+</html>
