@@ -7,25 +7,42 @@
       margin: 0;
       background: white;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
       font-family: Arial, sans-serif;
       user-select: none;
     }
+
     .status {
       text-align: center;
     }
+
     .status-text {
       font-size: 3em;
       margin-bottom: 20px;
     }
+
     .circle {
       width: 150px;
       height: 150px;
       border-radius: 50%;
       background-color: red;
-      margin: 0 auto;
+      margin: 0 auto 10px;
+    }
+
+    .label {
+      font-size: 2em;
+      font-weight: bold;
+      color: red;
+    }
+
+    .fullscreen-btn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -33,16 +50,48 @@
   <div class="status">
     <div class="status-text">Security Status</div>
     <div class="circle" id="light"></div>
+    <div class="label" id="label">Disarmed</div>
+    <button class="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
   </div>
 
   <script>
     let green = false;
+
+    function updateStatus() {
+      const light = document.getElementById('light');
+      const label = document.getElementById('label');
+      if (green) {
+        light.style.backgroundColor = 'green';
+        label.textContent = 'Activated';
+        label.style.color = 'green';
+      } else {
+        light.style.backgroundColor = 'red';
+        label.textContent = 'Disarmed';
+        label.style.color = 'red';
+      }
+    }
+
     document.body.onkeydown = function(e) {
       if (e.code === 'Space') {
         green = !green;
-        document.getElementById('light').style.backgroundColor = green ? 'green' : 'red';
+        updateStatus();
       }
     };
+
+    function goFullscreen() {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    }
+
+    // Set initial state
+    updateStatus();
   </script>
 </body>
 </html>
+
