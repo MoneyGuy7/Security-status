@@ -2,30 +2,54 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Security Status</title>
   <style>
     body {
       margin: 0;
-      background: white;
+      background-color: white;
+      color: black;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      user-select: none;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Loading screen */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: black;
+      color: white;
+      font-size: 2em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 1s ease-out;
+    }
+
+    #loading.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* Status Circle and UI */
+    .status {
+      text-align: center;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      font-family: Arial, sans-serif;
-      transition: background-color 0.3s, color 0.3s;
-      user-select: none;
-    }
-
-    body.dark-mode {
-      background-color: #121212;
-      color: white;
-    }
-
-    .status-text {
-      font-size: 3em;
-      margin-bottom: 20px;
     }
 
     .circle {
@@ -33,14 +57,14 @@
       height: 150px;
       border-radius: 50%;
       background-color: red;
-      margin: 0 auto 10px;
+      margin: 20px;
       transition: background-color 0.4s ease, box-shadow 0.4s ease;
     }
 
     .label {
-      font-size: 2em;
-      font-weight: bold;
+      font-size: 2.5em;
       color: red;
+      font-weight: bold;
       transition: color 0.4s ease;
     }
 
@@ -49,32 +73,26 @@
       margin-top: 20px;
     }
 
-    .fullscreen-btn, .reset-btn, .dark-mode-btn {
-      margin-top: 20px;
+    .button {
       padding: 10px 20px;
+      margin-top: 15px;
       font-size: 1em;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+      border: none;
+      border-radius: 5px;
     }
 
-    .log {
-      margin-top: 20px;
-      font-size: 1.2em;
-      max-height: 150px;
-      overflow-y: auto;
-      width: 80%;
+    .button:hover {
+      background-color: #333;
+      color: white;
     }
 
-    .log p {
-      margin: 5px 0;
+    .hidden {
+      display: none;
     }
 
-    .password-input {
-      margin-top: 20px;
-      padding: 10px;
-      font-size: 1em;
-    }
-
-    /* Popup styling */
+    /* Pop-up Menu */
     .popup {
       position: fixed;
       top: 30%;
@@ -85,7 +103,7 @@
       padding: 20px 30px;
       z-index: 10;
       display: none;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     }
 
     .popup.show {
@@ -104,67 +122,117 @@
       font-size: 1.2em;
       padding: 2px 10px;
     }
+
+    .green-light {
+      background-color: green;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* Background Modes */
+    .background-mode {
+      background: url('background1.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .background-mode.matrix {
+      background: url('matrix.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .background-mode.blueprint {
+      background: url('blueprint.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    /* Log */
+    .log {
+      margin-top: 30px;
+      width: 90%;
+      max-width: 500px;
+      height: 150px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background-color: #f7f7f7;
+      font-family: monospace;
+      font-size: 0.9em;
+      display: flex;
+      flex-direction: column-reverse;
+    }
   </style>
 </head>
+
 <body>
+  <!-- Loading Screen -->
+  <div id="loading">Loading...</div>
+
+  <!-- Security Status UI -->
   <div class="status">
-    <div class="status-text">Security Status</div>
-    <div class="circle" id="light"></div>
-    <div class="label" id="label">Disarmed</div>
+    <div class="circle" id="status-circle"></div>
+    <div class="label" id="status-label">Disarmed</div>
     <div class="timer" id="timer">Time: 0s</div>
-    <input type="password" id="password" class="password-input" placeholder="Set Password for Fullscreen" />
-    <button onclick="toggleDarkMode()" class="dark-mode-btn">Toggle Dark Mode</button>
-    <button onclick="resetSystem()" class="reset-btn">Reset</button>
-    <button class="fullscreen-btn" onclick="requestFullscreen()">Go Fullscreen</button>
+    <input type="password" id="password" placeholder="Set Password" />
+    <button class="button" onclick="setPassword()">Set Password</button>
+    <button class="button" onclick="toggleStatus()">Toggle Status</button>
+    <button class="button" onclick="showPopup()">Security Info</button>
+    <button class="button" onclick="emergencyShutdown()">Emergency Shutdown</button>
+    <button class="button" onclick="toggleBackground()">Toggle Background</button>
+    <div class="log" id="log"></div>
   </div>
 
-  <div class="log" id="log"></div>
-
-  <div class="popup" id="popup">
+  <!-- Security Popup -->
+  <div class="popup" id="security-popup">
     <button class="close-btn" onclick="closePopup()">X</button>
-    <p>Password Encrypted</p>
+    <p>IPAD SECURED</p>
+    <div class="green-light"></div>
   </div>
 
   <script>
-    let green = false;
-    let timerRunning = false;
-    let startTime = null;
+    let statusActivated = false;
     let timerInterval = null;
+    let startTime = null;
+    let timerRunning = false;
     let userPassword = null;
+    let isFullscreen = false;
 
-    const light = document.getElementById('light');
-    const label = document.getElementById('label');
-    const timer = document.getElementById('timer');
+    const statusCircle = document.getElementById('status-circle');
+    const statusLabel = document.getElementById('status-label');
+    const timerDisplay = document.getElementById('timer');
     const passwordInput = document.getElementById('password');
-    const logDiv = document.getElementById('log');
-    const popup = document.getElementById('popup');
+    const loadingScreen = document.getElementById('loading');
+    const popup = document.getElementById('security-popup');
+    const body = document.body;
+    const logContainer = document.getElementById('log');
 
-    document.addEventListener('keydown', function(e) {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        green = !green;
-        updateStatus();
-      }
-    });
+    // Loading screen fade out
+    setTimeout(() => {
+      loadingScreen.classList.add('hidden');
+    }, 2000);
 
-    function updateStatus() {
-      if (green) {
-        light.style.backgroundColor = 'green';
-        label.textContent = 'Activated';
-        label.style.color = 'green';
-        light.style.boxShadow = '0 0 40px green';
-        logAction('System Activated');
+    // Update status circle
+    function toggleStatus() {
+      statusActivated = !statusActivated;
+      if (statusActivated) {
+        statusCircle.style.backgroundColor = 'green';
+        statusLabel.textContent = 'Activated';
+        statusLabel.style.color = 'green';
+        statusCircle.style.boxShadow = '0 0 40px green';
         startTimer();
+        logEvent("Status activated");
       } else {
-        light.style.backgroundColor = 'red';
-        label.textContent = 'Disarmed';
-        label.style.color = 'red';
-        light.style.boxShadow = '0 0 40px red';
-        logAction('System Disarmed');
+        statusCircle.style.backgroundColor = 'red';
+        statusLabel.textContent = 'Disarmed';
+        statusLabel.style.color = 'red';
+        statusCircle.style.boxShadow = '0 0 40px red';
         stopTimer();
+        logEvent("Status disarmed");
       }
     }
 
+    // Start Timer
     function startTimer() {
       if (!timerRunning) {
         startTime = Date.now();
@@ -176,84 +244,70 @@
     function stopTimer() {
       clearInterval(timerInterval);
       timerRunning = false;
-      timer.textContent = 'Time: 0s';
+      timerDisplay.textContent = 'Time: 0s';
     }
 
     function updateTimer() {
       const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-      timer.textContent = `Time: ${elapsedTime}s`;
+      timerDisplay.textContent = `Time: ${elapsedTime}s`;
     }
 
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-      logAction('Dark Mode Toggled');
-    }
-
-    function resetSystem() {
-      green = false;
-      updateStatus();
-      stopTimer();
-      passwordInput.value = '';
-      userPassword = null;
-      logAction('System Reset + Password Cleared');
-    }
-
-    function logAction(action) {
-      const newLog = document.createElement('p');
-      newLog.textContent = `${new Date().toLocaleTimeString()}: ${action}`;
-      logDiv.appendChild(newLog);
-    }
-
-    function requestFullscreen() {
-      const enteredPassword = passwordInput.value.trim();
-
-      if (userPassword === null) {
-        alert("Set a password first.");
-        return;
-      }
-
-      if (enteredPassword !== userPassword) {
-        alert("Incorrect password.");
-        return;
-      }
-
-      goFullscreen();
-    }
-
-    function goFullscreen() {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
-      }
-
-      document.querySelector('.fullscreen-btn').style.display = 'none';
-    }
-
-    document.addEventListener('fullscreenchange', () => {
-      const fullscreenBtn = document.querySelector('.fullscreen-btn');
-      fullscreenBtn.style.display = document.fullscreenElement ? 'none' : 'block';
-    });
-
-    passwordInput.addEventListener('change', () => {
-      const newPass = passwordInput.value.trim();
-      userPassword = newPass !== '' ? newPass : null;
-      if (userPassword) {
-        popup.classList.add('show');
-        logAction('Password Encrypted');
+    // Set Password
+    function setPassword() {
+      const newPassword = passwordInput.value.trim();
+      if (newPassword) {
+        userPassword = newPassword;
+        alert("Password Set Successfully");
+        logEvent("Password set");
       } else {
-        logAction('Password Cleared');
+        alert("Please enter a valid password.");
       }
-    });
+    }
 
+    // Show Popup
+    function showPopup() {
+      if (userPassword === null) {
+        alert("Please set a password first.");
+        return;
+      }
+
+      popup.classList.add('show');
+      logEvent("Security info accessed");
+    }
+
+    // Close Popup
     function closePopup() {
       popup.classList.remove('show');
     }
 
-    updateStatus(); // Initialize
-  </script>
-</body>
-</html>
+    // Emergency Shutdown
+    function emergencyShutdown() {
+      statusActivated = false;
+      statusCircle.style.backgroundColor = 'red';
+      statusLabel.textContent = 'Disarmed';
+      statusLabel.style.color = 'red';
+      statusCircle.style.boxShadow = '0 0 40px red';
+      stopTimer();
+      alert("Emergency Shutdown Activated");
+      logEvent("Emergency shutdown activated");
+    }
+
+    // Background Mode Toggle
+    function toggleBackground() {
+      if (body.classList.contains('background-mode')) {
+        body.classList.remove('background-mode', 'matrix', 'blueprint');
+      } else {
+        const modes = ['matrix', 'blueprint'];
+        const randomMode = modes[Math.floor(Math.random() * modes.length)];
+        body.classList.add('background-mode', randomMode);
+        logEvent(`Background mode switched to ${randomMode}`);
+      }
+    }
+
+    // Log New Event
+    function logEvent(message) {
+      const logMessage = `${new Date().toLocaleTimeString()}: ${message}`;
+      const newLog = document.createElement("div");
+      newLog.textContent = logMessage;
+      logContainer.insertBefore(newLog, logContainer.firstChild);
+    }
