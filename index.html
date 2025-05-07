@@ -15,7 +15,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
+      flex-direction: row;
       user-select: none;
       transition: background-color 0.3s, color 0.3s;
     }
@@ -80,6 +80,11 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      width: 25%;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-right: 10px;
+      border-radius: 10px;
     }
 
     .circle {
@@ -111,11 +116,12 @@
       transition: background-color 0.3s ease;
       border: none;
       border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
     }
 
     .button:hover {
       background-color: #333;
-      color: white;
     }
 
     .hidden {
@@ -177,10 +183,15 @@
       background-size: cover;
     }
 
+    .dark-mode {
+      background-color: #222;
+      color: white;
+    }
+
     /* Log */
     .log {
       margin-top: 30px;
-      width: 90%;
+      width: 50%;
       max-width: 500px;
       height: 150px;
       overflow-y: auto;
@@ -192,6 +203,48 @@
       display: flex;
       flex-direction: column-reverse;
     }
+
+    /* Fullscreen Button */
+    #fullscreen-btn {
+      display: block;
+      margin-top: 20px;
+      font-size: 1em;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    #fullscreen-btn.hidden {
+      display: none;
+    }
+
+    /* Toggle Menu */
+    .menu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: fixed;
+      top: 10%;
+      left: 20px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .menu button {
+      margin: 10px;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
   </style>
 </head>
 
@@ -206,20 +259,29 @@
     <div class="circle" id="status-circle"></div>
     <div class="label" id="status-label">Disarmed</div>
     <div class="timer" id="timer">Time: 0s</div>
-    <input type="password" id="password" placeholder="Set Password" />
-    <button class="button" onclick="setPassword()">Set Password</button>
     <button class="button" onclick="toggleStatus()">Toggle Status</button>
+    <button class="button" onclick="toggleBackground()">Toggle Background</button>
+    <button class="button" onclick="toggleDarkMode()">Toggle Dark Mode</button>
     <button class="button" onclick="showPopup()">Security Info</button>
     <button class="button" onclick="emergencyShutdown()">Emergency Shutdown</button>
-    <button class="button" onclick="toggleBackground()">Toggle Background</button>
+    <button class="button" onclick="openMenu()">Open Menu</button>
     <div class="log" id="log"></div>
   </div>
+
+  <!-- Fullscreen Button -->
+  <button id="fullscreen-btn" onclick="toggleFullScreen()">Enter Fullscreen</button>
 
   <!-- Security Popup -->
   <div class="popup" id="security-popup">
     <button class="close-btn" onclick="closePopup()">X</button>
     <p>IPAD SECURED</p>
     <div class="green-light"></div>
+  </div>
+
+  <!-- Menu -->
+  <div class="menu hidden" id="menu">
+    <button onclick="activateSecurity()">Activate Security</button>
+    <button onclick="logEvent('Menu accessed')">Log Event</button>
   </div>
 
   <script>
@@ -233,11 +295,12 @@
     const statusCircle = document.getElementById('status-circle');
     const statusLabel = document.getElementById('status-label');
     const timerDisplay = document.getElementById('timer');
-    const passwordInput = document.getElementById('password');
     const loadingScreen = document.getElementById('loading');
     const popup = document.getElementById('security-popup');
     const body = document.body;
     const logContainer = document.getElementById('log');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const menu = document.getElementById('menu');
 
     // Loading screen fade out after 2 seconds
     setTimeout(() => {
@@ -284,34 +347,6 @@
       timerDisplay.textContent = `Time: ${elapsedTime}s`;
     }
 
-    // Set Password
-    function setPassword() {
-      const newPassword = passwordInput.value.trim();
-      if (newPassword) {
-        userPassword = newPassword;
-        alert("Password Set Successfully");
-        logEvent("Password set");
-      } else {
-        alert("Please enter a valid password.");
-      }
-    }
-
-    // Show Popup
-    function showPopup() {
-      if (userPassword === null) {
-        alert("Please set a password first.");
-        return;
-      }
-
-      popup.classList.add('show');
-      logEvent("Security info accessed");
-    }
-
-    // Close Popup
-    function closePopup() {
-      popup.classList.remove('show');
-    }
-
     // Emergency Shutdown
     function emergencyShutdown() {
       statusActivated = false;
@@ -324,25 +359,28 @@
       logEvent("Emergency shutdown activated");
     }
 
-    // Background Mode Toggle
-    function toggleBackground() {
-      if (body.classList.contains('background-mode')) {
-        body.classList.remove('background-mode', 'matrix', 'blueprint');
+    // Show Popup
+    function showPopup() {
+      popup.classList.add('show');
+      logEvent("Security info accessed");
+    }
+
+    function closePopup() {
+      popup.classList.remove('show');
+    }
+
+    // Fullscreen Toggle
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+        fullscreenBtn.classList.add('hidden');
       } else {
-        const modes = ['matrix', 'blueprint'];
-        const randomMode = modes[Math.floor(Math.random() * modes.length)];
-        body.classList.add('background-mode', randomMode);
-        logEvent(`Background mode switched to ${randomMode}`);
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+          fullscreenBtn.classList.remove('hidden');
+        }
       }
     }
 
-    // Log New Event
-    function logEvent(message) {
-      const logMessage = `${new Date().toLocaleTimeString()}: ${message}`;
-      const newLog = document.createElement("div");
-      newLog.textContent = logMessage;
-      logContainer.insertBefore(newLog, logContainer.firstChild);
-    }
-  </script>
-</body>
-</html>
+    // Background Mode Toggle
+    function toggle
