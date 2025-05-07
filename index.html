@@ -43,6 +43,36 @@
       visibility: hidden;
     }
 
+    /* Moving dots */
+    .dots {
+      display: inline-block;
+      position: relative;
+    }
+
+    .dots span {
+      font-size: 2em;
+      display: inline-block;
+      animation: dotMove 1.2s infinite;
+    }
+
+    .dots span:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .dots span:nth-child(2) {
+      animation-delay: 0.4s;
+    }
+
+    .dots span:nth-child(3) {
+      animation-delay: 0.8s;
+    }
+
+    @keyframes dotMove {
+      0% { opacity: 0; transform: translateY(-10px); }
+      50% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(10px); }
+    }
+
     /* Status Circle and UI */
     .status {
       text-align: center;
@@ -167,7 +197,9 @@
 
 <body>
   <!-- Loading Screen -->
-  <div id="loading">Loading...</div>
+  <div id="loading">
+    Loading<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+  </div>
 
   <!-- Security Status UI -->
   <div class="status">
@@ -207,7 +239,7 @@
     const body = document.body;
     const logContainer = document.getElementById('log');
 
-    // Loading screen fade out
+    // Loading screen fade out after 2 seconds
     setTimeout(() => {
       loadingScreen.classList.add('hidden');
     }, 2000);
@@ -311,3 +343,6 @@
       newLog.textContent = logMessage;
       logContainer.insertBefore(newLog, logContainer.firstChild);
     }
+  </script>
+</body>
+</html>
