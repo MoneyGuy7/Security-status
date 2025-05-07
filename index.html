@@ -48,17 +48,34 @@
       transition: color 0.4s ease;
     }
 
-    .fullscreen-btn {
-      margin-top: 30px;
-      padding: 10px 20px;
-      font-size: 1em;
-      cursor: pointer;
-      display: block;
-    }
-
     .timer {
       font-size: 1.5em;
       margin-top: 20px;
+    }
+
+    .fullscreen-btn, .reset-btn, .dark-mode-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    .log {
+      margin-top: 20px;
+      font-size: 1.2em;
+      max-height: 200px;
+      overflow-y: auto;
+      width: 80%;
+    }
+
+    .log p {
+      margin: 5px 0;
+    }
+
+    .password-input {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 1em;
     }
   </style>
 </head>
@@ -68,15 +85,20 @@
     <div class="circle" id="light"></div>
     <div class="label" id="label">Disarmed</div>
     <div class="timer" id="timer">Time: 0s</div>
-    <button class="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
-    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <input type="password" id="password" class="password-input" placeholder="Set Password for Fullscreen" />
+    <button onclick="toggleDarkMode()" class="dark-mode-btn">Toggle Dark Mode</button>
+    <button onclick="resetSystem()" class="reset-btn">Reset</button>
+    <button class="fullscreen-btn" onclick="requestFullscreen()">Go Fullscreen</button>
   </div>
+  
+  <div class="log" id="log"></div>
 
   <script>
     let green = false;
     let startTime = null;
     let timerInterval = null;
     let timerRunning = false;
+    let userPassword = '';  // Store the user's password
 
     // Start or stop the timer when status changes
     function startTimer() {
@@ -106,12 +128,14 @@
         label.textContent = 'Activated';
         label.style.color = 'green';
         light.style.boxShadow = '0 0 40px green';
+        logAction('System Activated');
         startTimer();
       } else {
         light.style.backgroundColor = 'red';
         label.textContent = 'Disarmed';
         label.style.color = 'red';
         light.style.boxShadow = '0 0 40px red';
+        logAction('System Disarmed');
         stopTimer();
       }
     }
@@ -124,6 +148,35 @@
       }
     });
 
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      logAction('Dark Mode Toggled');
+    }
+
+    function resetSystem() {
+      green = false;
+      updateStatus();
+      stopTimer();
+      logAction('System Reset');
+    }
+
+    function logAction(action) {
+      const logDiv = document.getElementById('log');
+      const newLog = document.createElement('p');
+      newLog.textContent = `${new Date().toLocaleTimeString()}: ${action}`;
+      logDiv.appendChild(newLog);
+    }
+
+    function requestFullscreen() {
+      const enteredPassword = document.getElementById('password').value;
+
+      if (enteredPassword === userPassword || !userPassword) {
+        goFullscreen();
+      } else {
+        alert('Incorrect password');
+      }
+    }
+
     function goFullscreen() {
       const elem = document.documentElement;
       if (elem.requestFullscreen) {
@@ -133,20 +186,7 @@
       } else if (elem.msRequestFullscreen) {
         elem.msRequestFullscreen();
       }
-    }
-
-    function exitFullscreen() {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
-      }
-    }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
+      document.querySelector('.fullscreen-btn').style.display = 'none';  // Hide fullscreen button in fullscreen mode
     }
 
     // Hide Fullscreen button when in fullscreen
@@ -159,8 +199,15 @@
       }
     });
 
+    // Set user's password when input is given
+    document.getElementById('password').addEventListener('change', function(e) {
+      userPassword = e.target.value;
+      logAction('Password Set for Fullscreen');
+    });
+
     // Set initial state
     updateStatus();
   </script>
 </body>
 </html>
+
