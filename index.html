@@ -49,6 +49,10 @@
       padding: 20px;
       gap: 20px;
     }
+    #status-label {
+      font-size: 28px;
+      font-weight: bold;
+    }
     #status-circle {
       width: 100px;
       height: 100px;
@@ -60,7 +64,7 @@
     #status-text {
       font-size: 20px;
     }
-    .controls, .extras {
+    .controls {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
@@ -107,17 +111,6 @@
       margin-left: auto;
       margin-right: auto;
     }
-    #password-section {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    input {
-      padding: 8px;
-      border-radius: 6px;
-      border: none;
-    }
     .hidden {
       display: none !important;
     }
@@ -130,6 +123,7 @@
   </div>
 
   <div id="app">
+    <div id="status-label" class="hidden">Security Status</div>
     <div id="status-circle"></div>
     <div id="status-text">Disarmed</div>
 
@@ -140,11 +134,6 @@
       <button id="menu-btn">Menu</button>
       <button id="dark-toggle">Dark Mode</button>
       <button id="bg-toggle">Toggle Background</button>
-    </div>
-
-    <div id="password-section">
-      <input type="password" id="password-input" placeholder="Set Password" />
-      <button id="set-password-btn">Set Password</button>
     </div>
 
     <div id="log"></div>
@@ -158,6 +147,7 @@
   <script>
     const loadingScreen = document.getElementById('loading-screen');
     const app = document.getElementById('app');
+    const statusLabel = document.getElementById('status-label');
     const statusCircle = document.getElementById('status-circle');
     const statusText = document.getElementById('status-text');
     const toggleBtn = document.getElementById('toggle-btn');
@@ -165,16 +155,11 @@
     const resetBtn = document.getElementById('reset-btn');
     const menuBtn = document.getElementById('menu-btn');
     const log = document.getElementById('log');
-    const passwordInput = document.getElementById('password-input');
-    const setPasswordBtn = document.getElementById('set-password-btn');
-    const menuPopup = document.getElementById('menu-popup');
     const darkToggle = document.getElementById('dark-toggle');
     const bgToggle = document.getElementById('bg-toggle');
 
     let currentStatus = "disarmed";
-    let userPassword = "";
 
-    // Show after 2 seconds
     window.addEventListener('load', () => {
       setTimeout(() => {
         loadingScreen.style.display = 'none';
@@ -215,8 +200,7 @@
       const fs = document.fullscreenElement;
       fullscreenBtn.style.display = fs ? "none" : "inline-block";
       resetBtn.style.display = fs ? "none" : "inline-block";
-      passwordInput.style.display = fs ? "none" : "inline-block";
-      setPasswordBtn.style.display = fs ? "none" : "inline-block";
+      statusLabel.classList.toggle("hidden", !fs);
     });
 
     resetBtn.onclick = () => {
@@ -224,13 +208,6 @@
       statusCircle.style.background = "red";
       statusText.textContent = "Disarmed";
       logAction("Status Reset");
-    };
-
-    setPasswordBtn.onclick = () => {
-      userPassword = passwordInput.value;
-      passwordInput.value = "";
-      alert("Password Encrypted");
-      logAction("Password Set");
     };
 
     menuBtn.onclick = () => {
