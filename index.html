@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Security Status</title>
   <style>
     body {
@@ -13,6 +15,12 @@
       height: 100vh;
       font-family: Arial, sans-serif;
       user-select: none;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.dark-mode {
+      background-color: #121212;
+      color: white;
     }
 
     .status {
@@ -30,12 +38,14 @@
       border-radius: 50%;
       background-color: red;
       margin: 0 auto 10px;
+      transition: background-color 0.4s ease, box-shadow 0.4s ease;
     }
 
     .label {
       font-size: 2em;
       font-weight: bold;
       color: red;
+      transition: color 0.4s ease;
     }
 
     .fullscreen-btn {
@@ -43,6 +53,12 @@
       padding: 10px 20px;
       font-size: 1em;
       cursor: pointer;
+      display: block;
+    }
+
+    .timer {
+      font-size: 1.5em;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -51,32 +67,62 @@
     <div class="status-text">Security Status</div>
     <div class="circle" id="light"></div>
     <div class="label" id="label">Disarmed</div>
+    <div class="timer" id="timer">Time: 0s</div>
     <button class="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
   </div>
 
   <script>
     let green = false;
+    let startTime = null;
+    let timerInterval = null;
+    let timerRunning = false;
+
+    // Start or stop the timer when status changes
+    function startTimer() {
+      if (!timerRunning) {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+        timerRunning = true;
+      }
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerRunning = false;
+    }
+
+    function updateTimer() {
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('timer').textContent = `Time: ${elapsedTime}s`;
+    }
 
     function updateStatus() {
       const light = document.getElementById('light');
       const label = document.getElementById('label');
+
       if (green) {
         light.style.backgroundColor = 'green';
         label.textContent = 'Activated';
         label.style.color = 'green';
+        light.style.boxShadow = '0 0 40px green';
+        startTimer();
       } else {
         light.style.backgroundColor = 'red';
         label.textContent = 'Disarmed';
         label.style.color = 'red';
+        light.style.boxShadow = '0 0 40px red';
+        stopTimer();
       }
     }
 
-    document.body.onkeydown = function(e) {
+    document.addEventListener('keydown', function(e) {
       if (e.code === 'Space') {
+        e.preventDefault(); // stops page from scrolling
         green = !green;
         updateStatus();
       }
-    };
+    });
 
     function goFullscreen() {
       const elem = document.documentElement;
@@ -89,9 +135,32 @@
       }
     }
 
+    function exitFullscreen() {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    // Hide Fullscreen button when in fullscreen
+    document.addEventListener('fullscreenchange', function() {
+      const fullscreenBtn = document.querySelector('.fullscreen-btn');
+      if (document.fullscreenElement) {
+        fullscreenBtn.style.display = 'none';
+      } else {
+        fullscreenBtn.style.display = 'block';
+      }
+    });
+
     // Set initial state
     updateStatus();
   </script>
 </body>
 </html>
-
